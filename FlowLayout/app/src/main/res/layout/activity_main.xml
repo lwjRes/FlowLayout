@@ -2,56 +2,62 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="500dp"
+    android:padding="50dp"
     >
 
     <com.lwj.fork.view.FlowLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:background="@color/colorAccent"
+        app:horizontalMargin="20dp"
+        app:verticalMargin="10dp"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:padding="5dp"
+        >
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="fjldsajflasd" />
+            android:text="我们" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="fasdlfj" />
+            android:text="我们是人" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="afs" />
+            android:text="我们上学去了呀" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="fjldsa" />
+            android:text="我们大姑娘高度法兰克时间" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="fjldsajflasd" />
+            android:text="后福建g啊高aljg发来的s" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="fjldsajflasd" />
+            android:text="提昂呀刚发的了行" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="fjldsajflasd" />
+            android:text="不要" />
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="fjlds"
+            android:text="天航"
             />
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="fjldsajflasd"
+            android:text="提昂呀"
             />
 
     </com.lwj.fork.view.FlowLayout>

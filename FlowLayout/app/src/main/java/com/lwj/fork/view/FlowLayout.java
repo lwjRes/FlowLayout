@@ -1,10 +1,12 @@
 package com.lwj.fork.view;
 
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+
+import com.lwj.fork.R;
 
 /**
  * Created by lwj on 16/4/13.
@@ -12,19 +14,9 @@ import android.view.ViewGroup;
  */
 public class FlowLayout extends ViewGroup {
 
-    int mWidth;// 宽
-    int mHeight; // 高
-    int mLeftPadding;// 左侧padd
-    int mRightPadding;//
-    int mTopPadding;
-    int mBottomPadding;
-    int childHorizontalMargin = dip2px(3);  // 子view 间的水平margin
-    int childVerticalMargin = dip2px(4);
-    int childMargin = dip2px(4);
-    int childCount;
-    int contentWidth = 0;   // 内容区域 宽
-    int contentHeight = 0; // 内容区域 高
 
+    int mChildHMargin;//  child 之间的水平margin
+    int mChildVMargin;  // child 之间的 竖直 margin
 
     public FlowLayout(Context context) {
         this(context, null);
@@ -36,149 +28,147 @@ public class FlowLayout extends ViewGroup {
 
     public FlowLayout(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
+        init(attrs);
     }
 
+    private void init(AttributeSet attrs) {
+        if (attrs != null) {
 
+            TypedArray array = getContext().obtainStyledAttributes(attrs, R.styleable.FlowLayout);
 
+            mChildHMargin = (int) array.getDimension(R.styleable.FlowLayout_horizontalMargin, dip2px(10));
+            mChildVMargin = (int) array.getDimension(R.styleable.FlowLayout_verticalMargin, dip2px(5));
 
-    @Override
-    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-        // 获得父容器为它设置大小
-        mWidth = MeasureSpec.getSize(widthMeasureSpec);
-        mHeight = MeasureSpec.getSize(heightMeasureSpec);
-
-        mLeftPadding = getPaddingLeft();
-        mRightPadding = getPaddingRight();
-        mTopPadding = getPaddingTop();
-        mBottomPadding = getPaddingBottom();
-        childCount = getChildCount();
-        contentWidth = mWidth - mLeftPadding - mRightPadding;
-
-        measureChilds(widthMeasureSpec, heightMeasureSpec);
-        mHeight = contentHeight + mTopPadding + mBottomPadding;
-        setMeasuredDimension(mWidth, mHeight);
-        Log.e("contentWidth", contentWidth + "");
-        Log.e("contentHeight", contentHeight + "");
+            array.recycle();
+        } else {
+            mChildHMargin = dip2px(10);
+            mChildVMargin = dip2px(5);
+        }
     }
 
     /**
-     * 测量 子view
-     * <p/>
-     * 每行的行头 不需要加  childHorizontalMargin
-     * <p/>
-     * 第一行   不需要加 childVerticalMargin
+     * 测量
+     * 以行排列
+     * 行与行之间  间距 mChildVMargin
+     * 每行的元素之间 间距 mChildHMargin
      *
      * @param widthMeasureSpec
      * @param heightMeasureSpec
      */
-    private void measureChilds(int widthMeasureSpec, int heightMeasureSpec) {
+    @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        // 获取 父View 测量的宽高
+        int width = MeasureSpec.getSize(widthMeasureSpec);
+        int height = MeasureSpec.getSize(heightMeasureSpec);
+        // 获取 上下 padding
+        int topPadding = getPaddingTop();
+        int bottomPadding = getPaddingBottom();
+        // 获取左右 padding
+        int leftPadding = getPaddingLeft();
+        int rightPadding = getPaddingRight();
+        // 内容区域的宽度
+        int mContentWidth = width - leftPadding - rightPadding;
+        int childCount = getChildCount();
+        // 希望高度
+        int shouldHeight = 0;
+        int maxWidth = 0;
+        // 每行的高度  第一行 只需要加child 的高度
+        int lineHeight = 0;
+        //  每一行的宽度  不可超过 父容器width
+        int lineWidth = 0;
 
-        int childIndexInLine = 0;
-        int lineIndex = 0; // 行索引
-        int x = mLeftPadding;
-        int childHeightMeasureSpec;
+        int lineIndex = 0;//行索引
 
-        int childWidthMeasureSec = MeasureSpec.makeMeasureSpec(contentWidth, MeasureSpec.AT_MOST);
-        if (MeasureSpec.getMode(heightMeasureSpec) == MeasureSpec.AT_MOST) {
-            childHeightMeasureSpec = MeasureSpec.makeMeasureSpec(contentHeight, MeasureSpec.AT_MOST);
-        } else {
-            childHeightMeasureSpec = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED);
-        }
+        int childIndexOfLine = 0; // child 在自己行的索引
         for (int i = 0; i < childCount; i++) {
-            final View child = getChildAt(i);
-            if (child.getVisibility() != GONE) {
-                child.measure(childWidthMeasureSec, childHeightMeasureSpec);
-                // child 宽度
-                int childWidth = child.getMeasuredWidth();
-                // child 高度
-                int childHeight = child.getMeasuredHeight();
-
-
-                if(lineIndex==0 &&childIndexInLine == 0){ // 第一行的第一个
-                    contentHeight = childHeight + contentHeight;
-                    x = childWidth + x;
-
-                }else if(lineIndex==0 &&childIndexInLine > 0){ // 第一行的其他
-                    //  越界  另起一行
-                    if (x + childWidth + childHorizontalMargin > contentWidth) {
-                        lineIndex++;
-                        x = mLeftPadding;
-                        childIndexInLine = 0;
-                    }
-                }else if(lineIndex>0 && childIndexInLine == 0){  // 不是第一行的第一个
-
-                }
-                // 每行的第一个child
-                if (childIndexInLine == 0) {
-                    {
-                        if (lineIndex == 0) {
-                            // 第一行   只需加 child 的高度
-                            contentHeight = childHeight + contentHeight;
-                        } else {
-                            // 其余行  加 child 的高度和 childVerticalMargin
-                            contentHeight = childHeight + contentHeight + childVerticalMargin;
-                        }
-                        x = childWidth + x;
-                    }
-                } else {
-                    //  越界  另起一行
-                    if (x + childWidth + childHorizontalMargin > contentWidth) {
-                        lineIndex++;
-                        x = mLeftPadding;
-                        childIndexInLine = 0;
-                    }
-                }
+            View chidlView = getChildAt(i);
+            //  测量childview
+            chidlView.measure(MeasureSpec.makeMeasureSpec(mContentWidth, MeasureSpec.AT_MOST), heightMeasureSpec);
+            int childWidth = chidlView.getMeasuredWidth();
+            int childHeight = chidlView.getMeasuredHeight();
+            MarginLayoutParams marginParmas;
+            ViewGroup.LayoutParams params = chidlView.getLayoutParams();
+            marginParmas = new MarginLayoutParams(params);
+            marginParmas.topMargin = 0;
+            marginParmas.bottomMargin = 0;
+            marginParmas.leftMargin = 0;
+            marginParmas.rightMargin = 0;
+            int childShouldWidth;
+            if (childIndexOfLine == 0) {  // 行首
+                childShouldWidth = childWidth;
+            } else {
+                // 非行首
+                childShouldWidth = mChildHMargin + childWidth;
+                marginParmas.leftMargin = mChildHMargin;
             }
+
+            if (lineWidth + childShouldWidth > mContentWidth) {
+                //  加入当前view  行宽越界
+                // 另起一行
+                //  换行前 得到 最大宽度
+                maxWidth = Math.max(maxWidth, lineWidth);
+                lineIndex++;
+                childIndexOfLine = 0;
+                lineWidth = 0;
+                childShouldWidth = childWidth;
+                marginParmas.topMargin = mChildVMargin;
+                if (lineIndex > 0) {
+                    // 不是第一行  行高需要加上 mChildVMargin
+                    lineHeight = childHeight + mChildVMargin;
+                } else {
+                    lineHeight = childHeight;
+                }
+                shouldHeight = lineHeight + shouldHeight;
+            }
+            //  计算 行宽
+            lineWidth = childShouldWidth + lineWidth;
+            maxWidth = Math.max(maxWidth, lineWidth);
+            childIndexOfLine++;
+            chidlView.setLayoutParams(marginParmas);
         }
+
+
+        int wMode = MeasureSpec.getMode(widthMeasureSpec);
+        int hMode = MeasureSpec.getMode(heightMeasureSpec);
+
+        // 加上 上下的padding才是真正的高度
+        shouldHeight = shouldHeight + topPadding + bottomPadding;
+        int shouldWidth = maxWidth + leftPadding + rightPadding;
+        setMeasuredDimension((wMode == MeasureSpec.EXACTLY) ? width
+                : shouldWidth, (hMode == MeasureSpec.EXACTLY) ? height
+                : shouldHeight);
+
     }
+
 
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
-
-        int childIndexInLine = 0;
-        int lineIndex = 0; // 行索引
-
-        int childLeft = mLeftPadding;
-        int childTop = mTopPadding;
-
-        int height = 0;
-
+        int width = r - l;
+        int leftPadding = getPaddingLeft();
+        width = width - leftPadding - getPaddingRight();
+        int xpos = getPaddingLeft();
+        int ypos = getPaddingTop();
         for (int i = 0; i < getChildCount(); i++) {
             final View child = getChildAt(i);
             if (child.getVisibility() != GONE) {
-                final int childWidth = child.getMeasuredWidth();
-                final int childHeight = child.getMeasuredHeight();
-                // 每行的第一个child
-                if (childIndexInLine == 0) {
-                    {
-                        if (lineIndex == 0) {
-                            // 啥都不做
-                            childLeft = mLeftPadding;
-                            childTop = mTopPadding;
-                        } else {
-                            // 其余行  加 child 的高度和 childVerticalMargin
-                            height = childHeight + height + childVerticalMargin;
-                            childLeft = mLeftPadding;
-                            childTop = mTopPadding + height;
-                        }
-                    }
+                final int childw = child.getMeasuredWidth();
+                final int childh = child.getMeasuredHeight();
+                MarginLayoutParams marginParmas = (MarginLayoutParams) child.getLayoutParams();
+                int topMargin = marginParmas.topMargin;
+                int leftMargin = marginParmas.leftMargin;
+
+                if (xpos + childw + leftMargin > width) {
+                    xpos = getPaddingLeft();
+                    ypos = topMargin + ypos + childh;
                 } else {
-                    //  越界  另起一行
-                    if (childLeft + childWidth + childHorizontalMargin > contentWidth) {
-                        lineIndex++;
-                        childLeft = mLeftPadding;
-                        childIndexInLine = 0;
-                    } else {
-                        childLeft = childLeft + childHorizontalMargin;
-                        childIndexInLine++;
-                    }
+                    //  计算 开始位置
+                    xpos = xpos + leftMargin;
                 }
-                int childRight = childLeft + childWidth;
-                int childBottom = childTop + childHeight;
-                child.layout(childLeft, childTop, childRight, childBottom);
+                child.layout(xpos, ypos, xpos + childw, ypos + childh);
+                xpos = xpos + childw;
             }
         }
+
     }
 
     //此方法是将dp值转化为px值，方便适配
@@ -186,15 +176,5 @@ public class FlowLayout extends ViewGroup {
         final float scale = getContext().getResources().getDisplayMetrics().density;
         return (int) (dpValue * scale + 0.5f);
     }
-    public int getChildHorizontalMargin() {
-        return childHorizontalMargin;
-    }
 
-    public int getChildVerticalMargin() {
-        return childVerticalMargin;
-    }
-
-    public int getChildMargin() {
-        return childMargin;
-    }
 }
