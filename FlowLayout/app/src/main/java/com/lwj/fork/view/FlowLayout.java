@@ -83,7 +83,8 @@ public class FlowLayout extends ViewGroup {
         for (int i = 0; i < childCount; i++) {
             View chidlView = getChildAt(i);
             //  测量childview
-            chidlView.measure(MeasureSpec.makeMeasureSpec(mContentWidth, MeasureSpec.AT_MOST), heightMeasureSpec);
+            measureChild(chidlView, widthMeasureSpec, heightMeasureSpec);
+//            chidlView.measure(MeasureSpec.makeMeasureSpec(mContentWidth, MeasureSpec.AT_MOST), heightMeasureSpec);
             int childWidth = chidlView.getMeasuredWidth();
             int childHeight = chidlView.getMeasuredHeight();
             MarginLayoutParams marginParmas;
@@ -95,12 +96,12 @@ public class FlowLayout extends ViewGroup {
             marginParmas.rightMargin = 0;
             int childShouldWidth;
             if (childIndexOfLine == 0) {  // 行首
-                childShouldWidth = childWidth;
+                marginParmas.leftMargin = 0;
             } else {
                 // 非行首
-                childShouldWidth = mChildHMargin + childWidth;
                 marginParmas.leftMargin = mChildHMargin;
             }
+            childShouldWidth = marginParmas.leftMargin + childWidth;
 
             if (lineWidth + childShouldWidth > mContentWidth) {
                 //  加入当前view  行宽越界
@@ -112,13 +113,8 @@ public class FlowLayout extends ViewGroup {
                 lineWidth = 0;
                 childShouldWidth = childWidth;
                 marginParmas.topMargin = mChildVMargin;
-                if (lineIndex > 0) {
-                    // 不是第一行  行高需要加上 mChildVMargin
-                    lineHeight = childHeight + mChildVMargin;
-                } else {
-                    lineHeight = childHeight;
-                }
-                shouldHeight = lineHeight + shouldHeight;
+                int childNeedVSpace = marginParmas.topMargin + childHeight;
+                shouldHeight = childNeedVSpace + shouldHeight;
             }
             //  计算 行宽
             lineWidth = childShouldWidth + lineWidth;
