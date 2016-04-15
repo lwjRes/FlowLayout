@@ -97,6 +97,12 @@ public class FlowLayout extends ViewGroup {
             int childShouldWidth;
             if (childIndexOfLine == 0) {  // 行首
                 marginParmas.leftMargin = 0;
+
+                if(lineIndex == 0){
+                    shouldHeight = childHeight;
+                }
+
+
             } else {
                 // 非行首
                 marginParmas.leftMargin = mChildHMargin;
