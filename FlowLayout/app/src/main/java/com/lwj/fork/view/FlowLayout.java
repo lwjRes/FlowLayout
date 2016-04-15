@@ -80,6 +80,11 @@ public class FlowLayout extends ViewGroup {
         int lineIndex = 0;//行索引
 
         int childIndexOfLine = 0; // child 在自己行的索引
+
+        //  child 水平上需要占据的空间
+        int childNeedHSpace;
+        //  child 竖直上需要占据的空间
+        int childNeedVSpace;
         for (int i = 0; i < childCount; i++) {
             View chidlView = getChildAt(i);
             //  测量childview
@@ -87,6 +92,14 @@ public class FlowLayout extends ViewGroup {
 //            chidlView.measure(MeasureSpec.makeMeasureSpec(mContentWidth, MeasureSpec.AT_MOST), heightMeasureSpec);
             int childWidth = chidlView.getMeasuredWidth();
             int childHeight = chidlView.getMeasuredHeight();
+
+            childNeedHSpace=childWidth;
+            childNeedVSpace = childHeight;
+
+           // bug－－－ 首次测量 第一个view 需要设置初始高度
+            if (i == 0) {
+                shouldHeight = childNeedVSpace;
+            }
             MarginLayoutParams marginParmas;
             ViewGroup.LayoutParams params = chidlView.getLayoutParams();
             marginParmas = new MarginLayoutParams(params);
@@ -94,22 +107,16 @@ public class FlowLayout extends ViewGroup {
             marginParmas.bottomMargin = 0;
             marginParmas.leftMargin = 0;
             marginParmas.rightMargin = 0;
-            int childShouldWidth;
+
             if (childIndexOfLine == 0) {  // 行首
                 marginParmas.leftMargin = 0;
-
-                if(lineIndex == 0){
-                    shouldHeight = childHeight;
-                }
-
-
             } else {
                 // 非行首
                 marginParmas.leftMargin = mChildHMargin;
             }
-            childShouldWidth = marginParmas.leftMargin + childWidth;
+            childNeedHSpace = marginParmas.leftMargin + childWidth;
 
-            if (lineWidth + childShouldWidth > mContentWidth) {
+            if (lineWidth + childNeedHSpace > mContentWidth) {
                 //  加入当前view  行宽越界
                 // 另起一行
                 //  换行前 得到 最大宽度
@@ -117,13 +124,13 @@ public class FlowLayout extends ViewGroup {
                 lineIndex++;
                 childIndexOfLine = 0;
                 lineWidth = 0;
-                childShouldWidth = childWidth;
+                childNeedHSpace = childWidth;
                 marginParmas.topMargin = mChildVMargin;
-                int childNeedVSpace = marginParmas.topMargin + childHeight;
+                childNeedVSpace = marginParmas.topMargin + childHeight;
                 shouldHeight = childNeedVSpace + shouldHeight;
             }
             //  计算 行宽
-            lineWidth = childShouldWidth + lineWidth;
+            lineWidth = childNeedHSpace + lineWidth;
             maxWidth = Math.max(maxWidth, lineWidth);
             childIndexOfLine++;
             chidlView.setLayoutParams(marginParmas);
@@ -148,8 +155,10 @@ public class FlowLayout extends ViewGroup {
         int width = r - l;
         int leftPadding = getPaddingLeft();
         width = width - leftPadding - getPaddingRight();
-        int xpos = getPaddingLeft();
-        int ypos = getPaddingTop();
+        int childLeft = getPaddingLeft();
+        int childTop = getPaddingTop();
+        int childRight = 0;
+        int childBottom = 0;
         for (int i = 0; i < getChildCount(); i++) {
             final View child = getChildAt(i);
             if (child.getVisibility() != GONE) {
@@ -158,16 +167,17 @@ public class FlowLayout extends ViewGroup {
                 MarginLayoutParams marginParmas = (MarginLayoutParams) child.getLayoutParams();
                 int topMargin = marginParmas.topMargin;
                 int leftMargin = marginParmas.leftMargin;
-
-                if (xpos + childw + leftMargin > width) {
-                    xpos = getPaddingLeft();
-                    ypos = topMargin + ypos + childh;
+                if (childLeft + childw + leftMargin > width) {
+                    childLeft = getPaddingLeft();
+                    childTop = topMargin + childTop + childh;
                 } else {
                     //  计算 开始位置
-                    xpos = xpos + leftMargin;
+                    childLeft = childLeft + leftMargin;
                 }
-                child.layout(xpos, ypos, xpos + childw, ypos + childh);
-                xpos = xpos + childw;
+                childRight = childLeft + childw;
+                childBottom = childTop + childh;
+                child.layout(childLeft, childTop, childRight, childBottom);
+                childLeft = childLeft + childw;
             }
         }
 
