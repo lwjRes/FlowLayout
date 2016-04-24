@@ -6,6 +6,7 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import com.lwj.fork.R;
 
@@ -18,7 +19,11 @@ public class FlowLayout extends ViewGroup {
 
     int mChildHMargin;//  child 之间的水平margin
     int mChildVMargin;  // child 之间的 竖直 margin
+    boolean single_check ; // 是否是单选  默认单选
+    int text_color_id;
+    int text_background_id;
 
+    public Context mContext;
     public FlowLayout(Context context) {
         this(context, null);
     }
@@ -29,16 +34,20 @@ public class FlowLayout extends ViewGroup {
 
     public FlowLayout(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        init(attrs);
+        init(attrs,context);
     }
 
-    private void init(AttributeSet attrs) {
+    private void init(AttributeSet attrs,Context context) {
+        this.mContext = context;
         if (attrs != null) {
 
             TypedArray array = getContext().obtainStyledAttributes(attrs, R.styleable.FlowLayout);
 
             mChildHMargin = (int) array.getDimension(R.styleable.FlowLayout_horizontalMargin, dip2px(10));
             mChildVMargin = (int) array.getDimension(R.styleable.FlowLayout_verticalMargin, dip2px(5));
+            text_color_id = array.getResourceId(R.styleable.FlowLayout_text_color,-1);
+            text_background_id = array.getResourceId(R.styleable.FlowLayout_text_background,-1);
+            single_check = array.getBoolean(R.styleable.FlowLayout_single_check,true);
 
             array.recycle();
         } else {
@@ -186,5 +195,49 @@ public class FlowLayout extends ViewGroup {
         final float scale = getContext().getResources().getDisplayMetrics().density;
         return (int) (dpValue * scale + 0.5f);
     }
+
+    BaseAdapter baseAdapter;
+
+    public void setAdapter(BaseAdapter baseAdapter){
+        this.baseAdapter = baseAdapter;
+        addTexts();
+    }
+    public void addTexts(){
+
+        int childCount  = baseAdapter.getCount();
+        for (int i = 0; i < childCount; i++) {
+            final View itemView = baseAdapter.getItemView(i,this);
+            itemView.setTag(i);
+            itemView.setOnClickListener(new OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    int index = (int) itemView.getTag();
+                    if (onItemClickListener != null) {
+                        onItemClickListener.onItemClick(v,FlowLayout.this,index);
+                    }
+                }
+            });
+            addView(itemView);
+        }
+      requestLayout();
+    }
+    public void setOnItemClickListener(OnItemClickListener onItemClickListener){
+        this.onItemClickListener = onItemClickListener;
+    }
+    OnItemClickListener onItemClickListener;
+    public interface  OnItemClickListener{
+        void onItemClick(View itemView,FlowLayout flowLayout,int position);
+    }
+
+
+    public static abstract  class BaseAdapter{
+
+        public BaseAdapter() {
+        }
+
+        public abstract  int getCount();
+        public abstract  View getItemView(int index,FlowLayout parent);
+    }
+
 
 }
