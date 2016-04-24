@@ -3,6 +3,7 @@ package com.lwj.fork.view;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -72,12 +73,9 @@ public class FlowLayout extends ViewGroup {
         // 希望高度
         int shouldHeight = 0;
         int maxWidth = 0;
-        // 每行的高度  第一行 只需要加child 的高度
-        int lineHeight = 0;
         //  每一行的宽度  不可超过 父容器width
         int lineWidth = 0;
 
-        int lineIndex = 0;//行索引
 
         int childIndexOfLine = 0; // child 在自己行的索引
 
@@ -121,7 +119,6 @@ public class FlowLayout extends ViewGroup {
                 // 另起一行
                 //  换行前 得到 最大宽度
                 maxWidth = Math.max(maxWidth, lineWidth);
-                lineIndex++;
                 childIndexOfLine = 0;
                 lineWidth = 0;
                 childNeedHSpace = childWidth;
@@ -135,8 +132,6 @@ public class FlowLayout extends ViewGroup {
             childIndexOfLine++;
             chidlView.setLayoutParams(marginParmas);
         }
-
-
         int wMode = MeasureSpec.getMode(widthMeasureSpec);
         int hMode = MeasureSpec.getMode(heightMeasureSpec);
 
@@ -148,8 +143,6 @@ public class FlowLayout extends ViewGroup {
                 : shouldHeight);
 
     }
-
-
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
         int width = r - l;
@@ -169,20 +162,25 @@ public class FlowLayout extends ViewGroup {
                 int leftMargin = marginParmas.leftMargin;
                 if (childLeft + childw + leftMargin > width) {
                     childLeft = getPaddingLeft();
-                    childTop = topMargin + childTop + childh;
+
+                    if(topMargin == 0){
+                        marginParmas.topMargin = mChildVMargin;
+                    }
+                    topMargin = marginParmas.topMargin;
+                    childTop = topMargin + childBottom;
                 } else {
                     //  计算 开始位置
                     childLeft = childLeft + leftMargin;
                 }
                 childRight = childLeft + childw;
                 childBottom = childTop + childh;
+
                 child.layout(childLeft, childTop, childRight, childBottom);
                 childLeft = childLeft + childw;
             }
         }
 
     }
-
     //此方法是将dp值转化为px值，方便适配
     private int dip2px(float dpValue) {
         final float scale = getContext().getResources().getDisplayMetrics().density;
