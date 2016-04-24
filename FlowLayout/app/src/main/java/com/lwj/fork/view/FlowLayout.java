@@ -3,10 +3,8 @@ package com.lwj.fork.view;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 
 import com.lwj.fork.R;
 
@@ -19,9 +17,6 @@ public class FlowLayout extends ViewGroup {
 
     int mChildHMargin;//  child 之间的水平margin
     int mChildVMargin;  // child 之间的 竖直 margin
-    boolean single_check ; // 是否是单选  默认单选
-    int text_color_id;
-    int text_background_id;
 
     public Context mContext;
     public FlowLayout(Context context) {
@@ -45,9 +40,6 @@ public class FlowLayout extends ViewGroup {
 
             mChildHMargin = (int) array.getDimension(R.styleable.FlowLayout_horizontalMargin, dip2px(10));
             mChildVMargin = (int) array.getDimension(R.styleable.FlowLayout_verticalMargin, dip2px(5));
-            text_color_id = array.getResourceId(R.styleable.FlowLayout_text_color,-1);
-            text_background_id = array.getResourceId(R.styleable.FlowLayout_text_background,-1);
-            single_check = array.getBoolean(R.styleable.FlowLayout_single_check,true);
 
             array.recycle();
         } else {
